@@ -4,6 +4,7 @@ from .serializers import ProductSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.db.models import Sum
+from .ml_model import StockPredictor
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
@@ -27,3 +28,13 @@ class ProductViewSet(viewsets.ModelViewSet):
             'monthly': ["medium", "high", "medium"],
         }
         return Response(mock_sales_trends)
+
+    @action(detail=True, methods=['get'])
+    def predict_stock(self, request, pk=None):
+        product = self.get_object()
+        predictor = StockPredictor()
+        # Example data for training
+        data = [(10, 15), (15, 20), (20, 25)]
+        predictor.train(data)
+        prediction = predictor.predict(product.quantity)
+        return Response({'predicted_future_stock': prediction})
